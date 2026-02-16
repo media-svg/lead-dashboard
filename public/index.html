@@ -1,80 +1,169 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Lead Response Board</title>
+<meta charset="UTF-8">
+<title>Lead Command Center</title>
 
-  <style>
-    body {
-      background-color: #0f172a;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 40px;
-    }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-    h1 {
-      font-size: 60px;
-      margin-bottom: 20px;
-    }
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .count {
-      font-size: 120px;
-      margin-bottom: 40px;
-    }
+body {
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top left, #0f172a, #020617);
+  color: white;
+  height: 100vh;
+  overflow: hidden;
+  padding: 40px;
+}
 
-    .lead {
-      width: 60%;
-      margin: 20px auto;
-      padding: 25px;
-      border-radius: 12px;
-      font-size: 36px;
-      font-weight: bold;
-    }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    .green { background-color: #15803d; }
-    .yellow { background-color: #ca8a04; }
-    .red { background-color: #b91c1c; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 
-  </style>
+.brand img {
+  height: 60px;
+}
+
+.brand h1 {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.clock {
+  font-size: 32px;
+  opacity: 0.8;
+}
+
+.count {
+  font-size: 140px;
+  font-weight: 800;
+  margin: 40px 0;
+  text-align: center;
+}
+
+.board {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lead {
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 25px;
+  font-size: 36px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.4s ease;
+  border: 2px solid transparent;
+}
+
+.timer { font-weight: 800; }
+
+.green {
+  border-color: #16a34a;
+  box-shadow: 0 0 25px rgba(22,163,74,0.4);
+}
+
+.yellow {
+  border-color: #eab308;
+  box-shadow: 0 0 25px rgba(234,179,8,0.4);
+}
+
+.red {
+  border-color: #dc2626;
+  box-shadow: 0 0 35px rgba(220,38,38,0.7);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.footer {
+  position: absolute;
+  bottom: 20px;
+  right: 40px;
+  font-size: 14px;
+  opacity: 0.5;
+}
+</style>
 </head>
 
 <body>
 
-  <h1>LEADS WAITING</h1>
-  <div class="count" id="count">0</div>
+<div class="header">
+  <div class="brand">
+    <img src="logo.png" alt="Logo">
+    <h1>LEAD COMMAND CENTER</h1>
+  </div>
+  <div class="clock" id="clock"></div>
+</div>
 
-  <div id="leadList"></div>
+<div class="count" id="count">0</div>
 
-  <script>
-    async function fetchLeads() {
-      const response = await fetch('/leads');
-      const leads = await response.json();
+<div class="board" id="leadList"></div>
 
-      document.getElementById("count").innerText = leads.length;
+<div class="footer">
+  Response SLA Target: 5 Minutes
+</div>
 
-      const list = document.getElementById("leadList");
-      list.innerHTML = "";
+<script>
+function updateClock() {
+  const now = new Date();
+  document.getElementById("clock").innerText =
+    now.toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-      leads.forEach(lead => {
-        const minutes = Math.floor((Date.now() - lead.created_at) / 60000);
+async function fetchLeads() {
+  const response = await fetch('/leads');
+  const leads = await response.json();
 
-        let color = "green";
-        if (minutes >= 5) color = "yellow";
-        if (minutes >= 10) color = "red";
+  document.getElementById("count").innerText = leads.length;
 
-        const div = document.createElement("div");
-        div.className = "lead " + color;
-        div.innerHTML = lead.name + " — " + minutes + " min";
+  const list = document.getElementById("leadList");
+  list.innerHTML = "";
 
-        list.appendChild(div);
-      });
-    }
+  leads.forEach(lead => {
+    const minutes = Math.floor((Date.now() - lead.created_at) / 60000);
 
-    setInterval(fetchLeads, 5000);
-    fetchLeads();
-  </script>
+    let status = "green";
+    if (minutes >= 3) status = "yellow";
+    if (minutes >= 5) status = "red";
+
+    const div = document.createElement("div");
+    div.className = "lead " + status;
+
+    div.innerHTML = `
+      <div>${lead.name}</div>
+      <div class="timer">${minutes} min</div>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+setInterval(fetchLeads, 5000);
+fetchLeads();
+</script>
 
 </body>
 </html>
