@@ -1,46 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>ORA 4X Lead Command Center</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
+      font-family: Arial, Helvetica, sans-serif;
       color: white;
-      text-align: center;
+      background: radial-gradient(circle at center, #111 0%, #000 70%);
+      overflow: hidden;
     }
 
-    .header {
+    .logo {
       position: absolute;
       top: 30px;
       left: 40px;
+      width: 180px;
+      opacity: 0.95;
     }
 
     .clock {
       position: absolute;
-      top: 40px;
+      top: 30px;
       right: 40px;
-      font-size: 22px;
-      opacity: 0.7;
+      font-size: 20px;
+      opacity: 0.8;
     }
 
-    .main {
+    .center {
+      text-align: center;
       margin-top: 150px;
     }
 
-    .leads-title {
-      font-size: 28px;
+    .title {
+      font-size: 32px;
       letter-spacing: 3px;
       opacity: 0.7;
+      margin-bottom: 10px;
     }
 
-    .lead-count {
-      font-size: 140px;
-      font-weight: 700;
-      margin: 10px 0 50px 0;
+    .count {
+      font-size: 120px;
+      font-weight: bold;
+      margin-bottom: 40px;
     }
 
     .cards {
@@ -50,12 +53,12 @@
     }
 
     .card {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
+      background: linear-gradient(145deg, #1a1a1a, #111);
+      padding: 30px 60px;
       border-radius: 20px;
-      padding: 30px 50px;
-      min-width: 320px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      min-width: 300px;
+      text-align: center;
     }
 
     .card-title {
@@ -66,54 +69,53 @@
     }
 
     .card-value {
-      font-size: 42px;
-      font-weight: 700;
+      font-size: 40px;
+      font-weight: bold;
     }
 
-    .green { color: #28d17c; }
-    .yellow { color: #f5c542; }
-    .red { color: #ff4d4d; }
+    .green { color: #2ecc71; }
+    .yellow { color: #f1c40f; }
+    .red { color: #e74c3c; }
 
-    .footer {
+    .business-hours {
       position: absolute;
       bottom: 20px;
-      right: 40px;
+      right: 30px;
       font-size: 12px;
-      opacity: 0.5;
+      opacity: 0.4;
     }
   </style>
 </head>
-
 <body>
 
-  <div class="header">
-    <img src="/logo.png" width="200">
-  </div>
+<img src="logo.png" class="logo">
 
-  <div class="clock" id="clock"></div>
+<div class="clock" id="clock"></div>
 
-  <div class="main">
-    <div class="leads-title">LEADS WAITING</div>
-    <div class="lead-count" id="leadCount">0</div>
+<div class="center">
+  <div class="title">LEADS WAITING</div>
+  <div class="count" id="leadCount">0</div>
 
-    <div class="cards">
-
-      <div class="card">
-        <div class="card-title" id="avgTitle"></div>
-        <div class="card-value" id="avgValue">0.0 MIN</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-title" id="avgTitle">
+        AVG SPEED TO FIRST CALL — 
       </div>
+      <div class="card-value" id="avgValue">0.0 MIN</div>
+    </div>
 
-      <div class="card">
-        <div class="card-title">TOTAL LEADS TODAY</div>
-        <div class="card-value" id="totalToday">0</div>
+    <div class="card">
+      <div class="card-title">
+        TOTAL LEADS TODAY
       </div>
-
+      <div class="card-value" id="totalToday">0</div>
     </div>
   </div>
+</div>
 
-  <div class="footer">
-    Business Hours: 8:00 AM – 5:00 PM
-  </div>
+<div class="business-hours">
+  Business Hours: 8:00 AM – 5:00 PM
+</div>
 
 <script>
 function updateClock() {
@@ -124,26 +126,8 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-function getBusinessMinutes(start, end) {
-  const open = 8;
-  const close = 17;
-
-  let current = new Date(start);
-  let minutes = 0;
-
-  while (current < end) {
-    const hour = current.getHours();
-    if (hour >= open && hour < close) {
-      minutes++;
-    }
-    current.setMinutes(current.getMinutes() + 1);
-  }
-
-  return minutes;
-}
-
-async function loadData() {
-  const res = await fetch("/leads.json");
+async function loadLeads() {
+  const res = await fetch("/leads");
   const data = await res.json();
 
   const active = data.active || [];
@@ -151,67 +135,62 @@ async function loadData() {
 
   document.getElementById("leadCount").innerText = active.length;
 
-  const today = new Date();
-  const todayStr = today.toDateString();
+  // ----- TOTAL LEADS TODAY -----
+  const today = new Date().toDateString();
 
-  // TOTAL LEADS TODAY
-  let totalToday = 0;
-  [...active, ...completed].forEach(lead => {
-    const created = new Date(lead.created_at);
-    if (created.toDateString() === todayStr) {
-      totalToday++;
-    }
-  });
+  const todayLeads = [...active, ...completed].filter(l =>
+    new Date(l.created_at).toDateString() === today
+  );
 
-  document.getElementById("totalToday").innerText = totalToday;
+  document.getElementById("totalToday").innerText = todayLeads.length;
 
-  // AVG SPEED TO FIRST CALL
+  // ----- AVG SPEED TO FIRST CALL (BUSINESS HOURS) -----
+  const completedToday = completed.filter(l =>
+    new Date(l.created_at).toDateString() === today &&
+    l.called_at
+  );
+
   let totalMinutes = 0;
-  let count = 0;
 
-  completed.forEach(lead => {
-    const created = new Date(lead.created_at);
-    const called = new Date(lead.called_at);
-
-    if (created.toDateString() === todayStr) {
-      const mins = getBusinessMinutes(created, called);
-      totalMinutes += mins;
-      count++;
-    }
+  completedToday.forEach(l => {
+    const created = new Date(l.created_at);
+    const called = new Date(l.called_at);
+    const diff = (called - created) / 60000;
+    totalMinutes += diff;
   });
 
   let avg = 0;
-  if (count > 0) {
-    avg = totalMinutes / count;
+  if (completedToday.length > 0) {
+    avg = totalMinutes / completedToday.length;
   }
 
-  const avgRounded = avg.toFixed(1);
-
-  // Add DATE to title
-  document.getElementById("avgTitle").innerText =
-    "AVG SPEED TO FIRST CALL — " + today.toLocaleDateString(undefined, {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric'
-    });
-
   const avgElement = document.getElementById("avgValue");
-  avgElement.innerText = avgRounded + " MIN";
+  avgElement.innerText = avg.toFixed(1) + " MIN";
 
-  // COLOR CODING
+  // Add Date to Title
+  const dateString = new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  document.getElementById("avgTitle").innerText =
+    "AVG SPEED TO FIRST CALL — " + dateString;
+
+  // Color Coding
   avgElement.classList.remove("green","yellow","red");
 
   if (avg <= 5) {
     avgElement.classList.add("green");
-  } else if (avg <= 15) {
+  } else if (avg <= 10) {
     avgElement.classList.add("yellow");
   } else {
     avgElement.classList.add("red");
   }
 }
 
-setInterval(loadData, 5000);
-loadData();
+setInterval(loadLeads, 5000);
+loadLeads();
 </script>
 
 </body>
