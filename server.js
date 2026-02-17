@@ -9,8 +9,8 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = "./leads.json";
 
-const BUSINESS_START = 8;  // 8 AM
-const BUSINESS_END = 17;   // 5 PM
+const BUSINESS_START = 8;
+const BUSINESS_END = 17;
 
 function loadLeads() {
   try {
@@ -58,7 +58,7 @@ app.post("/new-lead", (req, res) => {
   res.json({ success: true });
 });
 
-// REMOVE LEAD (this means first call happened)
+// REMOVE LEAD
 app.post("/remove-lead", (req, res) => {
   const data = loadLeads();
 
@@ -76,7 +76,6 @@ app.post("/remove-lead", (req, res) => {
   );
 
   saveLeads(data);
-
   res.json({ success: true });
 });
 
@@ -86,9 +85,16 @@ app.get("/dashboard-data", (req, res) => {
 
   const today = new Date();
   today.setHours(0,0,0,0);
+  const todayStart = today.getTime();
 
+  // Total leads today (all created today)
+  const totalLeadsToday =
+    data.active.filter(l => l.created_at >= todayStart).length +
+    data.completed.filter(l => l.created_at >= todayStart).length;
+
+  // Completed today (for avg calculation)
   const todayCompleted = data.completed.filter(
-    l => l.completed_at && l.completed_at >= today.getTime()
+    l => l.completed_at && l.completed_at >= todayStart
   );
 
   let avgResponse = 0;
@@ -103,7 +109,8 @@ app.get("/dashboard-data", (req, res) => {
 
   res.json({
     active: data.active,
-    avgResponse: avgResponse.toFixed(1)
+    avgResponse: avgResponse.toFixed(1),
+    totalLeadsToday
   });
 });
 
