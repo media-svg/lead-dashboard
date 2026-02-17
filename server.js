@@ -110,9 +110,16 @@ app.get("/dashboard-data", (req, res) => {
     data.completed = [];
   }
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const todayStart = today.getTime();
+// Get current time in Pacific timezone
+const now = new Date();
+
+const pacificNow = new Date(
+  now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
+);
+
+pacificNow.setHours(0, 0, 0, 0);
+
+const todayStart = pacificNow.getTime();
 
   const totalLeadsToday =
     data.active.filter(l => l.created_at >= todayStart).length +
