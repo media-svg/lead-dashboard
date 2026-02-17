@@ -3,139 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <title>ORA 4X Lead Command Center</title>
+
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle at center, #111 0%, #000 70%);
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
       color: white;
       text-align: center;
     }
 
-    .header {
+    /* Top Bar */
+    .top-bar {
       display: flex;
       justify-content: space-between;
-      padding: 30px 50px;
-      font-size: 18px;
-      opacity: 0.8;
+      align-items: center;
+      padding: 30px 60px;
     }
 
     .logo {
-      font-size: 24px;
-      font-weight: bold;
-      letter-spacing: 2px;
+      height: 60px;
     }
 
+    .clock {
+      font-size: 22px;
+      opacity: 0.7;
+    }
+
+    /* Main Stats */
     .main-count {
       margin-top: 40px;
     }
 
-    .main-count h1 {
-      font-size: 20px;
-      letter-spacing: 3px;
-      font-weight: 400;
-      opacity: 0.7;
+    .main-count h2 {
+      letter-spacing: 4px;
+      font-weight: 500;
+      opacity: 0.6;
+      margin-bottom: 10px;
     }
 
     .main-count .number {
       font-size: 120px;
-      margin: 10px 0 40px 0;
+      font-weight: 700;
     }
 
-    .cards {
+    /* Lead Cards */
+    .leads-container {
+      margin-top: 60px;
       display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin-bottom: 40px;
-    }
-
-    .card {
-      background: linear-gradient(145deg, #1a1a1a, #111);
-      padding: 30px 50px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-      min-width: 280px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      letter-spacing: 2px;
-      opacity: 0.7;
-      margin-bottom: 10px;
-    }
-
-    .card-value {
-      font-size: 36px;
-      font-weight: bold;
-    }
-
-    .green { color: #22c55e; }
-    .yellow { color: #facc15; }
-    .red { color: #ef4444; }
-
-    #leadList {
-      margin-top: 30px;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      padding-bottom: 80px;
     }
 
     .lead-card {
-      background: linear-gradient(90deg, #22c55e, #16a34a);
-      padding: 20px 30px;
-      border-radius: 12px;
-      margin-bottom: 15px;
+      width: 75%;
+      padding: 40px 50px;
+      border-radius: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1fb14e;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      transition: 0.3s ease;
+    }
+
+    .lead-info {
       text-align: left;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     }
 
     .lead-name {
-      font-size: 20px;
-      font-weight: bold;
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 8px;
     }
 
     .lead-source {
-      font-size: 14px;
+      font-size: 18px;
       opacity: 0.9;
     }
 
+    .lead-wait {
+      font-size: 36px;
+      font-weight: 700;
+    }
+
     .footer {
-      position: absolute;
+      position: fixed;
       bottom: 20px;
-      right: 30px;
-      font-size: 12px;
-      opacity: 0.5;
+      right: 40px;
+      font-size: 14px;
+      opacity: 0.4;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="header">
-    <div class="logo">ORA 4X</div>
-    <div id="clock"></div>
+  <div class="top-bar">
+    <img src="logo.png" class="logo" />
+    <div class="clock" id="clock"></div>
   </div>
 
   <div class="main-count">
-    <h1>LEADS WAITING</h1>
+    <h2>LEADS WAITING</h2>
     <div class="number" id="leadCount">0</div>
   </div>
 
-  <div class="cards">
-    <div class="card">
-      <div class="card-title" id="avgTitle">
-        AVG SPEED TO FIRST CALL
-      </div>
-      <div class="card-value" id="avgSpeed">0.0 MIN</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">TOTAL LEADS TODAY</div>
-      <div class="card-value" id="totalLeads">0</div>
-    </div>
-  </div>
-
-  <div id="leadList"></div>
+  <div class="leads-container" id="leadsContainer"></div>
 
   <div class="footer">
     Business Hours: 8:00 AM – 5:00 PM
@@ -150,56 +126,42 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+function minutesWaiting(createdAt) {
+  const now = Date.now();
+  return Math.floor((now - createdAt) / 60000);
+}
+
 async function loadDashboard() {
   const res = await fetch("/dashboard-data");
   const data = await res.json();
 
-  const today = new Date().toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric"
-  });
-
-  document.getElementById("avgTitle").innerText =
-    "AVG SPEED TO FIRST CALL — " + today;
-
-  document.getElementById("leadCount").innerText =
-    data.active.length;
-
-  document.getElementById("totalLeads").innerText =
-    data.totalLeadsToday;
-
-  const avgEl = document.getElementById("avgSpeed");
-  avgEl.innerText = data.avgResponse + " MIN";
-
-  avgEl.classList.remove("green", "yellow", "red");
-
-  if (data.avgResponse <= 5) {
-    avgEl.classList.add("green");
-  } else if (data.avgResponse <= 15) {
-    avgEl.classList.add("yellow");
-  } else {
-    avgEl.classList.add("red");
-  }
-
-  const container = document.getElementById("leadList");
+  const container = document.getElementById("leadsContainer");
   container.innerHTML = "";
 
-  data.active.forEach(lead => {
-    const div = document.createElement("div");
-    div.className = "lead-card";
+  document.getElementById("leadCount").innerText = data.active.length;
 
-    div.innerHTML = `
-      <div class="lead-name">${lead.name}</div>
-      <div class="lead-source">${lead.source || "Unknown Source"}</div>
+  data.active.forEach(lead => {
+    const card = document.createElement("div");
+    card.className = "lead-card";
+
+    const waitMinutes = minutesWaiting(lead.created_at);
+
+    card.innerHTML = `
+      <div class="lead-info">
+        <div class="lead-name">${lead.name}</div>
+        <div class="lead-source">${lead.source || "Unknown Source"}</div>
+      </div>
+      <div class="lead-wait">
+        ${waitMinutes} MIN
+      </div>
     `;
 
-    container.appendChild(div);
+    container.appendChild(card);
   });
 }
 
-loadDashboard();
 setInterval(loadDashboard, 5000);
+loadDashboard();
 </script>
 
 </body>
