@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>ORA 4X Lead Command Center</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
@@ -16,106 +15,59 @@ body {
     linear-gradient(180deg, #111111 0%, #000000 100%);
   color: white;
   height: 100vh;
-  overflow: hidden;
   padding: 60px;
 }
-
-/* Header */
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
 }
 
-.logo {
-  height: 70px;
-}
+.logo { height: 70px; }
 
-.clock {
-  font-size: 28px;
-  font-weight: 500;
-  opacity: 0.7;
-}
-
-/* Counter */
+.clock { font-size: 28px; opacity: 0.7; }
 
 .counter-section {
   text-align: center;
-  margin-bottom: 60px;
-}
-
-.counter-title {
-  font-size: 22px;
-  letter-spacing: 4px;
-  opacity: 0.6;
-  margin-bottom: 15px;
+  margin: 50px 0;
 }
 
 .count {
-  font-size: 140px;
+  font-size: 120px;
   font-weight: 800;
 }
 
-/* Board */
+.avg {
+  margin-top: 15px;
+  font-size: 22px;
+  opacity: 0.8;
+}
 
 .board {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .lead-card {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  border-radius: 16px;
-  padding: 30px 40px;
-  margin-bottom: 25px;
-  transition: 0.3s ease;
+  padding: 25px 35px;
+  margin-bottom: 20px;
+  border-radius: 14px;
+  font-size: 28px;
 }
 
-.lead-info {
-  display: flex;
-  flex-direction: column;
-}
+.green { background: #15803d; }
+.yellow { background: #ca8a04; color: black; }
+.red { background: #b91c1c; }
 
-.lead-name {
-  font-size: 34px;
-  font-weight: 700;
-}
-
-.lead-source {
-  font-size: 18px;
-  opacity: 0.9;
-  margin-top: 6px;
-}
-
-.lead-timer {
-  font-size: 34px;
-  font-weight: 800;
-}
-
-/* FULL BAR STATUS COLORS */
-
-.green {
-  background: linear-gradient(90deg, #15803d, #22c55e);
-}
-
-.yellow {
-  background: linear-gradient(90deg, #a16207, #eab308);
-  color: black;
-}
-
-.red {
-  background: linear-gradient(90deg, #991b1b, #ef4444);
-}
-
-/* Footer */
+.lead-info { display: flex; flex-direction: column; }
+.lead-source { font-size: 16px; opacity: 0.9; }
 
 .footer {
   position: absolute;
-  bottom: 25px;
+  bottom: 20px;
   right: 60px;
   font-size: 14px;
   opacity: 0.4;
@@ -131,31 +83,33 @@ body {
 </div>
 
 <div class="counter-section">
-  <div class="counter-title">LEADS WAITING</div>
   <div class="count" id="count">0</div>
+  <div class="avg">AVG SPEED TO FIRST CALL (BUSINESS HOURS): 
+    <strong id="avgResponse">0.0</strong> MIN
+  </div>
 </div>
 
 <div class="board" id="leadList"></div>
 
-<div class="footer">
-  Response SLA Target: 5 Minutes
-</div>
+<div class="footer">Business Hours: 8:00 AM – 5:00 PM</div>
 
 <script>
 
 function updateClock() {
   const now = new Date();
-  document.getElementById("clock").innerText =
-    now.toLocaleTimeString();
+  document.getElementById("clock").innerText = now.toLocaleTimeString();
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-async function fetchLeads() {
-  const response = await fetch('/leads');
-  const leads = await response.json();
+async function fetchDashboard() {
+  const response = await fetch('/dashboard-data');
+  const data = await response.json();
+
+  const leads = data.active;
 
   document.getElementById("count").innerText = leads.length;
+  document.getElementById("avgResponse").innerText = data.avgResponse;
 
   const list = document.getElementById("leadList");
   list.innerHTML = "";
@@ -172,18 +126,18 @@ async function fetchLeads() {
 
     div.innerHTML = `
       <div class="lead-info">
-        <div class="lead-name">${lead.name}</div>
+        <div>${lead.name}</div>
         <div class="lead-source">${lead.source || "Unknown Source"}</div>
       </div>
-      <div class="lead-timer">${minutes} min</div>
+      <div>${minutes} min</div>
     `;
 
     list.appendChild(div);
   });
 }
 
-setInterval(fetchLeads, 5000);
-fetchLeads();
+setInterval(fetchDashboard, 5000);
+fetchDashboard();
 
 </script>
 
