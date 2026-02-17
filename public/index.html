@@ -1,121 +1,145 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>ORA 4X Lead Command Center</title>
   <style>
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      color: white;
+      font-family: Arial, sans-serif;
       background: radial-gradient(circle at center, #111 0%, #000 70%);
-      overflow: hidden;
+      color: white;
+      text-align: center;
     }
 
-    .logo {
-      position: absolute;
-      top: 30px;
-      left: 40px;
-      width: 180px;
-      opacity: 0.95;
-    }
-
-    .clock {
-      position: absolute;
-      top: 30px;
-      right: 40px;
-      font-size: 20px;
+    .header {
+      display: flex;
+      justify-content: space-between;
+      padding: 30px 50px;
+      font-size: 18px;
       opacity: 0.8;
     }
 
-    .center {
-      text-align: center;
-      margin-top: 150px;
-    }
-
-    .title {
-      font-size: 32px;
-      letter-spacing: 3px;
-      opacity: 0.7;
-      margin-bottom: 10px;
-    }
-
-    .count {
-      font-size: 120px;
+    .logo {
+      font-size: 24px;
       font-weight: bold;
-      margin-bottom: 40px;
+      letter-spacing: 2px;
+    }
+
+    .main-count {
+      margin-top: 40px;
+    }
+
+    .main-count h1 {
+      font-size: 20px;
+      letter-spacing: 3px;
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    .main-count .number {
+      font-size: 120px;
+      margin: 10px 0 40px 0;
     }
 
     .cards {
       display: flex;
       justify-content: center;
       gap: 40px;
+      margin-bottom: 40px;
     }
 
     .card {
       background: linear-gradient(145deg, #1a1a1a, #111);
-      padding: 30px 60px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      min-width: 300px;
-      text-align: center;
+      padding: 30px 50px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      min-width: 280px;
     }
 
     .card-title {
       font-size: 14px;
       letter-spacing: 2px;
-      opacity: 0.6;
+      opacity: 0.7;
       margin-bottom: 10px;
     }
 
     .card-value {
-      font-size: 40px;
+      font-size: 36px;
       font-weight: bold;
     }
 
-    .green { color: #2ecc71; }
-    .yellow { color: #f1c40f; }
-    .red { color: #e74c3c; }
+    .green { color: #22c55e; }
+    .yellow { color: #facc15; }
+    .red { color: #ef4444; }
 
-    .business-hours {
+    #leadList {
+      margin-top: 30px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .lead-card {
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      padding: 20px 30px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      text-align: left;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+
+    .lead-name {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .lead-source {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .footer {
       position: absolute;
       bottom: 20px;
       right: 30px;
       font-size: 12px;
-      opacity: 0.4;
+      opacity: 0.5;
     }
   </style>
 </head>
+
 <body>
 
-<img src="logo.png" class="logo">
+  <div class="header">
+    <div class="logo">ORA 4X</div>
+    <div id="clock"></div>
+  </div>
 
-<div class="clock" id="clock"></div>
-
-<div class="center">
-  <div class="title">LEADS WAITING</div>
-  <div class="count" id="leadCount">0</div>
+  <div class="main-count">
+    <h1>LEADS WAITING</h1>
+    <div class="number" id="leadCount">0</div>
+  </div>
 
   <div class="cards">
     <div class="card">
       <div class="card-title" id="avgTitle">
-        AVG SPEED TO FIRST CALL — 
+        AVG SPEED TO FIRST CALL
       </div>
-      <div class="card-value" id="avgValue">0.0 MIN</div>
+      <div class="card-value" id="avgSpeed">0.0 MIN</div>
     </div>
 
     <div class="card">
-      <div class="card-title">
-        TOTAL LEADS TODAY
-      </div>
-      <div class="card-value" id="totalToday">0</div>
+      <div class="card-title">TOTAL LEADS TODAY</div>
+      <div class="card-value" id="totalLeads">0</div>
     </div>
   </div>
-</div>
 
-<div class="business-hours">
-  Business Hours: 8:00 AM – 5:00 PM
-</div>
+  <div id="leadList"></div>
+
+  <div class="footer">
+    Business Hours: 8:00 AM – 5:00 PM
+  </div>
 
 <script>
 function updateClock() {
@@ -126,71 +150,56 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-async function loadLeads() {
-  const res = await fetch("/leads");
+async function loadDashboard() {
+  const res = await fetch("/dashboard-data");
   const data = await res.json();
 
-  const active = data.active || [];
-  const completed = data.completed || [];
-
-  document.getElementById("leadCount").innerText = active.length;
-
-  // ----- TOTAL LEADS TODAY -----
-  const today = new Date().toDateString();
-
-  const todayLeads = [...active, ...completed].filter(l =>
-    new Date(l.created_at).toDateString() === today
-  );
-
-  document.getElementById("totalToday").innerText = todayLeads.length;
-
-  // ----- AVG SPEED TO FIRST CALL (BUSINESS HOURS) -----
-  const completedToday = completed.filter(l =>
-    new Date(l.created_at).toDateString() === today &&
-    l.called_at
-  );
-
-  let totalMinutes = 0;
-
-  completedToday.forEach(l => {
-    const created = new Date(l.created_at);
-    const called = new Date(l.called_at);
-    const diff = (called - created) / 60000;
-    totalMinutes += diff;
-  });
-
-  let avg = 0;
-  if (completedToday.length > 0) {
-    avg = totalMinutes / completedToday.length;
-  }
-
-  const avgElement = document.getElementById("avgValue");
-  avgElement.innerText = avg.toFixed(1) + " MIN";
-
-  // Add Date to Title
-  const dateString = new Date().toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric'
+  const today = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric"
   });
 
   document.getElementById("avgTitle").innerText =
-    "AVG SPEED TO FIRST CALL — " + dateString;
+    "AVG SPEED TO FIRST CALL — " + today;
 
-  // Color Coding
-  avgElement.classList.remove("green","yellow","red");
+  document.getElementById("leadCount").innerText =
+    data.active.length;
 
-  if (avg <= 5) {
-    avgElement.classList.add("green");
-  } else if (avg <= 10) {
-    avgElement.classList.add("yellow");
+  document.getElementById("totalLeads").innerText =
+    data.totalLeadsToday;
+
+  const avgEl = document.getElementById("avgSpeed");
+  avgEl.innerText = data.avgResponse + " MIN";
+
+  avgEl.classList.remove("green", "yellow", "red");
+
+  if (data.avgResponse <= 5) {
+    avgEl.classList.add("green");
+  } else if (data.avgResponse <= 15) {
+    avgEl.classList.add("yellow");
   } else {
-    avgElement.classList.add("red");
+    avgEl.classList.add("red");
   }
+
+  const container = document.getElementById("leadList");
+  container.innerHTML = "";
+
+  data.active.forEach(lead => {
+    const div = document.createElement("div");
+    div.className = "lead-card";
+
+    div.innerHTML = `
+      <div class="lead-name">${lead.name}</div>
+      <div class="lead-source">${lead.source || "Unknown Source"}</div>
+    `;
+
+    container.appendChild(div);
+  });
 }
 
-setInterval(loadLeads, 5000);
-loadLeads();
+loadDashboard();
+setInterval(loadDashboard, 5000);
 </script>
 
 </body>
