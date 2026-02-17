@@ -1,219 +1,217 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>ORA 4X Lead Command Center</title>
+  <title>ORA 4X Lead Command Center</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: radial-gradient(circle at center, #111 0%, #000 70%);
-  color: white;
-  text-align: center;
-  overflow: hidden;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
+      color: white;
+      text-align: center;
+    }
 
-.header {
-  position: absolute;
-  top: 40px;
-  left: 60px;
-}
+    .header {
+      position: absolute;
+      top: 30px;
+      left: 40px;
+    }
 
-.clock {
-  position: absolute;
-  top: 40px;
-  right: 60px;
-  font-size: 22px;
-  opacity: 0.8;
-}
+    .clock {
+      position: absolute;
+      top: 40px;
+      right: 40px;
+      font-size: 22px;
+      opacity: 0.7;
+    }
 
-.main {
-  margin-top: 180px;
-}
+    .main {
+      margin-top: 150px;
+    }
 
-.leads-title {
-  letter-spacing: 4px;
-  font-size: 32px;
-  opacity: 0.7;
-}
+    .leads-title {
+      font-size: 28px;
+      letter-spacing: 3px;
+      opacity: 0.7;
+    }
 
-.leads-count {
-  font-size: 160px;
-  font-weight: 700;
-  margin-top: 10px;
-}
+    .lead-count {
+      font-size: 140px;
+      font-weight: 700;
+      margin: 10px 0 50px 0;
+    }
 
-.stats-row {
-  margin-top: 70px;
-  display: flex;
-  justify-content: center;
-  gap: 80px;
-}
+    .cards {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+    }
 
-.stat-card {
-  background: rgba(255,255,255,0.05);
-  padding: 35px 70px;
-  border-radius: 20px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 25px 50px rgba(0,0,0,.6);
-  min-width: 320px;
-}
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px 50px;
+      min-width: 320px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
 
-.stat-title {
-  font-size: 15px;
-  letter-spacing: 2px;
-  opacity: 0.6;
-}
+    .card-title {
+      font-size: 14px;
+      letter-spacing: 2px;
+      opacity: 0.6;
+      margin-bottom: 10px;
+    }
 
-.stat-value {
-  font-size: 42px;
-  font-weight: 700;
-  margin-top: 12px;
-  transition: all .3s ease;
-}
+    .card-value {
+      font-size: 42px;
+      font-weight: 700;
+    }
 
-.footer {
-  position: absolute;
-  bottom: 30px;
-  right: 60px;
-  font-size: 12px;
-  opacity: 0.4;
-}
-</style>
+    .green { color: #28d17c; }
+    .yellow { color: #f5c542; }
+    .red { color: #ff4d4d; }
+
+    .footer {
+      position: absolute;
+      bottom: 20px;
+      right: 40px;
+      font-size: 12px;
+      opacity: 0.5;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="header">
-  <img src="/logo.png" height="55">
-</div>
+  <div class="header">
+    <img src="/logo.png" width="200">
+  </div>
 
-<div class="clock" id="clock"></div>
+  <div class="clock" id="clock"></div>
 
-<div class="main">
-  <div class="leads-title">LEADS WAITING</div>
-  <div class="leads-count" id="leadCount">0</div>
+  <div class="main">
+    <div class="leads-title">LEADS WAITING</div>
+    <div class="lead-count" id="leadCount">0</div>
 
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-title" id="avgTitle">AVG SPEED TO FIRST CALL</div>
-      <div class="stat-value" id="avgSpeed">0.0 MIN</div>
-    </div>
+    <div class="cards">
 
-    <div class="stat-card">
-      <div class="stat-title">TOTAL LEADS TODAY</div>
-      <div class="stat-value" id="totalToday">0</div>
+      <div class="card">
+        <div class="card-title" id="avgTitle"></div>
+        <div class="card-value" id="avgValue">0.0 MIN</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">TOTAL LEADS TODAY</div>
+        <div class="card-value" id="totalToday">0</div>
+      </div>
+
     </div>
   </div>
-</div>
 
-<div class="footer">
-  Business Hours: 8:00 AM – 5:00 PM
-</div>
+  <div class="footer">
+    Business Hours: 8:00 AM – 5:00 PM
+  </div>
 
 <script>
-
-function updateClock(){
+function updateClock() {
   const now = new Date();
   document.getElementById("clock").innerText =
-    now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+    now.toLocaleTimeString();
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-function businessMinutes(start, end){
-  const businessStart = 8;
-  const businessEnd = 17;
+function getBusinessMinutes(start, end) {
+  const open = 8;
+  const close = 17;
 
-  let minutes = 0;
   let current = new Date(start);
+  let minutes = 0;
 
-  while (current < end){
-    if (
-      current.getHours() >= businessStart &&
-      current.getHours() < businessEnd &&
-      current.getDay() !== 0 &&
-      current.getDay() !== 6
-    ){
+  while (current < end) {
+    const hour = current.getHours();
+    if (hour >= open && hour < close) {
       minutes++;
     }
     current.setMinutes(current.getMinutes() + 1);
   }
+
   return minutes;
 }
 
-function setAvgColor(avg){
-  const el = document.getElementById("avgSpeed");
+async function loadData() {
+  const res = await fetch("/leads.json");
+  const data = await res.json();
 
-  if (avg <= 5){
-    el.style.color = "#2ecc71";
-    el.style.textShadow = "0 0 16px rgba(46,204,113,.4)";
-  }
-  else if (avg <= 15){
-    el.style.color = "#f1c40f";
-    el.style.textShadow = "0 0 16px rgba(241,196,15,.4)";
-  }
-  else{
-    el.style.color = "#e74c3c";
-    el.style.textShadow = "0 0 16px rgba(231,76,60,.4)";
-  }
-}
+  const active = data.active || [];
+  const completed = data.completed || [];
 
-async function fetchLeads(){
-  const res = await fetch("/leads");
-  const leads = await res.json();
+  document.getElementById("leadCount").innerText = active.length;
 
-  document.getElementById("leadCount").innerText = leads.length;
+  const today = new Date();
+  const todayStr = today.toDateString();
 
-  const now = new Date();
-  const todayStart = new Date();
-  todayStart.setHours(0,0,0,0);
-
+  // TOTAL LEADS TODAY
   let totalToday = 0;
-  let callSpeeds = [];
-
-  leads.forEach(lead => {
-
+  [...active, ...completed].forEach(lead => {
     const created = new Date(lead.created_at);
-
-    if (created >= todayStart){
+    if (created.toDateString() === todayStr) {
       totalToday++;
     }
-
-    if (lead.first_call_at){
-      const firstCall = new Date(lead.first_call_at);
-      const mins = businessMinutes(created, firstCall);
-      callSpeeds.push(mins);
-    }
-
   });
 
   document.getElementById("totalToday").innerText = totalToday;
 
-  let avg = 0;
-  if (callSpeeds.length > 0){
-    avg = callSpeeds.reduce((a,b)=>a+b,0) / callSpeeds.length;
-  }
+  // AVG SPEED TO FIRST CALL
+  let totalMinutes = 0;
+  let count = 0;
 
-  const dateString = now.toLocaleDateString(undefined, {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric'
+  completed.forEach(lead => {
+    const created = new Date(lead.created_at);
+    const called = new Date(lead.called_at);
+
+    if (created.toDateString() === todayStr) {
+      const mins = getBusinessMinutes(created, called);
+      totalMinutes += mins;
+      count++;
+    }
   });
 
+  let avg = 0;
+  if (count > 0) {
+    avg = totalMinutes / count;
+  }
+
+  const avgRounded = avg.toFixed(1);
+
+  // Add DATE to title
   document.getElementById("avgTitle").innerText =
-    `AVG SPEED TO FIRST CALL — ${dateString}`;
+    "AVG SPEED TO FIRST CALL — " + today.toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    });
 
-  document.getElementById("avgSpeed").innerText =
-    avg.toFixed(1) + " MIN";
+  const avgElement = document.getElementById("avgValue");
+  avgElement.innerText = avgRounded + " MIN";
 
-  setAvgColor(avg);
+  // COLOR CODING
+  avgElement.classList.remove("green","yellow","red");
+
+  if (avg <= 5) {
+    avgElement.classList.add("green");
+  } else if (avg <= 15) {
+    avgElement.classList.add("yellow");
+  } else {
+    avgElement.classList.add("red");
+  }
 }
 
-setInterval(fetchLeads, 5000);
-fetchLeads();
-
+setInterval(loadData, 5000);
+loadData();
 </script>
 
 </body>
