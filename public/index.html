@@ -45,13 +45,13 @@ body {
   font-weight: 800;
 }
 
-.avg-container {
-  margin-top: 30px;
+.kpi-block {
+  margin-top: 25px;
   font-size: 28px;
   font-weight: 700;
 }
 
-.avg-container strong {
+.kpi-block strong {
   font-size: 34px;
   font-weight: 800;
 }
@@ -59,6 +59,12 @@ body {
 .avg-green { color: #22c55e; }
 .avg-yellow { color: #facc15; }
 .avg-red { color: #ef4444; }
+
+.total-leads {
+  margin-top: 15px;
+  font-size: 24px;
+  opacity: 0.85;
+}
 
 .board {
   max-width: 1200px;
@@ -102,9 +108,13 @@ body {
   <div class="waiting-label">LEADS WAITING</div>
   <div class="count" id="count">0</div>
 
-  <div class="avg-container" id="avgContainer">
+  <div class="kpi-block" id="avgContainer">
     <span id="avgTitle"></span><br>
     <strong><span id="avgResponse">0.0</span> MIN</strong>
+  </div>
+
+  <div class="total-leads">
+    TOTAL LEADS TODAY — <strong><span id="totalLeads">0</span></strong>
   </div>
 </div>
 
@@ -134,33 +144,26 @@ async function fetchDashboard() {
   const response = await fetch('/dashboard-data');
   const data = await response.json();
 
-  const leads = data.active;
-
-  document.getElementById("count").innerText = leads.length;
+  document.getElementById("count").innerText = data.active.length;
   document.getElementById("avgResponse").innerText = data.avgResponse;
+  document.getElementById("totalLeads").innerText = data.totalLeadsToday;
 
-  // Set title with date
   document.getElementById("avgTitle").innerText =
     `AVG SPEED TO FIRST CALL — ${formatDate()}`;
 
-  // Color coding
   const avg = parseFloat(data.avgResponse);
   const container = document.getElementById("avgContainer");
 
   container.classList.remove("avg-green", "avg-yellow", "avg-red");
 
-  if (avg < 3) {
-    container.classList.add("avg-green");
-  } else if (avg >= 3 && avg <= 5) {
-    container.classList.add("avg-yellow");
-  } else if (avg > 5) {
-    container.classList.add("avg-red");
-  }
+  if (avg < 3) container.classList.add("avg-green");
+  else if (avg <= 5) container.classList.add("avg-yellow");
+  else container.classList.add("avg-red");
 
   const list = document.getElementById("leadList");
   list.innerHTML = "";
 
-  leads.forEach(lead => {
+  data.active.forEach(lead => {
     const minutes = Math.floor((Date.now() - lead.created_at) / 60000);
 
     let status = "green";
