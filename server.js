@@ -16,8 +16,18 @@ const BUSINESS_END = 17;
 
 function loadLeads() {
   try {
-    const data = fs.readFileSync(DATA_FILE);
-    return JSON.parse(data);
+    const data = JSON.parse(fs.readFileSync(DATA_FILE));
+
+    if (!data.completed) {
+      data.completed = [];
+    }
+
+    if (!data.active) {
+      data.active = [];
+    }
+
+    return data;
+
   } catch {
     return { active: [], completed: [] };
   }
