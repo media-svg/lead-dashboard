@@ -117,12 +117,9 @@ app.get("/dashboard-data", (req, res) => {
     data.active.filter(l => l.created_at >= todayStart).length +
     data.completed.filter(l => l.created_at >= todayStart).length;
 
-  const todayCompleted = data.completed.filter(
-    l =>
-      l.completed_at &&
-      l.completed_at >= todayStart &&
-      l.created_at >= todayStart
-  );
+const todayCompleted = data.completed.filter(
+  l => l.completed_at && l.created_at >= todayStart
+);
 
   let avgResponse = 0;
 
