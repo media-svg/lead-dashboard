@@ -118,14 +118,20 @@ app.get("/dashboard-data", (req, res) => {
     data.completed.filter(l => l.created_at >= todayStart).length;
 
   const todayCompleted = data.completed.filter(
-    l => l.completed_at && l.completed_at >= todayStart
+    l =>
+      l.completed_at &&
+      l.completed_at >= todayStart &&
+      l.created_at >= todayStart
   );
 
   let avgResponse = 0;
 
   if (todayCompleted.length > 0) {
     const totalMinutes = todayCompleted.reduce((sum, l) => {
-      return sum + Math.round((l.completed_at - l.created_at) / 60000);
+      return sum + calculateBusinessMinutes(
+        l.created_at,
+        l.completed_at
+      );
     }, 0);
 
     avgResponse = Math.round(totalMinutes / todayCompleted.length);
