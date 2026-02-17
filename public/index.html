@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Lead Command Center</title>
+<title>ORA 4X Lead Command Center</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
@@ -11,97 +11,114 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: radial-gradient(circle at top left, #0f172a, #020617);
+  background:
+    radial-gradient(1200px 600px at 50% 30%, rgba(255,255,255,0.05), transparent 70%),
+    linear-gradient(180deg, #111111 0%, #000000 100%);
   color: white;
   height: 100vh;
   overflow: hidden;
-  padding: 40px;
+  padding: 60px;
 }
+
+/* Header */
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 40px;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.brand img {
-  height: 60px;
-}
-
-.brand h1 {
-  font-size: 48px;
-  font-weight: 800;
-  letter-spacing: 2px;
+.logo {
+  height: 70px;
 }
 
 .clock {
-  font-size: 32px;
-  opacity: 0.8;
+  font-size: 28px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+/* Center Counter */
+
+.counter-section {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.counter-title {
+  font-size: 22px;
+  letter-spacing: 4px;
+  opacity: 0.6;
+  margin-bottom: 15px;
 }
 
 .count {
   font-size: 140px;
   font-weight: 800;
-  margin: 40px 0;
-  text-align: center;
 }
 
+/* Lead Board */
+
 .board {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.lead {
-  backdrop-filter: blur(12px);
-  background: rgba(255,255,255,0.05);
-  border-radius: 16px;
-  padding: 30px;
-  margin-bottom: 25px;
-  font-size: 36px;
-  font-weight: 600;
+.lead-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.4s ease;
-  border: 2px solid transparent;
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 30px 40px;
+  margin-bottom: 25px;
+  border-left: 6px solid transparent;
+  transition: 0.3s ease;
 }
 
-.timer { font-weight: 800; }
+.lead-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.lead-name {
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.lead-source {
+  font-size: 18px;
+  opacity: 0.6;
+  margin-top: 6px;
+}
+
+.lead-timer {
+  font-size: 34px;
+  font-weight: 800;
+}
+
+/* Status Colors */
 
 .green {
-  border-color: #16a34a;
-  box-shadow: 0 0 25px rgba(22,163,74,0.4);
+  border-left-color: #22c55e;
 }
 
 .yellow {
-  border-color: #eab308;
-  box-shadow: 0 0 25px rgba(234,179,8,0.4);
+  border-left-color: #eab308;
 }
 
 .red {
-  border-color: #dc2626;
-  box-shadow: 0 0 35px rgba(220,38,38,0.7);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+  border-left-color: #ef4444;
+  background: rgba(239,68,68,0.05);
 }
 
 .footer {
   position: absolute;
-  bottom: 20px;
-  right: 40px;
+  bottom: 25px;
+  right: 60px;
   font-size: 14px;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 </style>
 </head>
@@ -109,14 +126,14 @@ body {
 <body>
 
 <div class="header">
-  <div class="brand">
-    <img src="logo.png" alt="Logo">
-    <h1>LEAD COMMAND CENTER</h1>
-  </div>
+  <img src="logo.png" class="logo">
   <div class="clock" id="clock"></div>
 </div>
 
-<div class="count" id="count">0</div>
+<div class="counter-section">
+  <div class="counter-title">LEADS WAITING</div>
+  <div class="count" id="count">0</div>
+</div>
 
 <div class="board" id="leadList"></div>
 
@@ -125,6 +142,7 @@ body {
 </div>
 
 <script>
+
 function updateClock() {
   const now = new Date();
   document.getElementById("clock").innerText =
@@ -150,11 +168,14 @@ async function fetchLeads() {
     if (minutes >= 5) status = "red";
 
     const div = document.createElement("div");
-    div.className = "lead " + status;
+    div.className = "lead-card " + status;
 
     div.innerHTML = `
-      <div>${lead.name}</div>
-      <div class="timer">${minutes} min</div>
+      <div class="lead-info">
+        <div class="lead-name">${lead.name}</div>
+        <div class="lead-source">${lead.source || "Unknown Source"}</div>
+      </div>
+      <div class="lead-timer">${minutes} min</div>
     `;
 
     list.appendChild(div);
@@ -163,6 +184,7 @@ async function fetchLeads() {
 
 setInterval(fetchLeads, 5000);
 fetchLeads();
+
 </script>
 
 </body>
