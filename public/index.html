@@ -30,19 +30,35 @@ body {
 
 .counter-section {
   text-align: center;
-  margin: 50px 0;
+  margin: 60px 0;
+}
+
+.waiting-label {
+  font-size: 22px;
+  letter-spacing: 3px;
+  opacity: 0.6;
+  margin-bottom: 10px;
 }
 
 .count {
-  font-size: 120px;
+  font-size: 130px;
   font-weight: 800;
 }
 
-.avg {
-  margin-top: 15px;
-  font-size: 22px;
-  opacity: 0.8;
+.avg-container {
+  margin-top: 30px;
+  font-size: 28px;
+  font-weight: 700;
 }
+
+.avg-container strong {
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.avg-green { color: #22c55e; }
+.avg-yellow { color: #facc15; }
+.avg-red { color: #ef4444; }
 
 .board {
   max-width: 1200px;
@@ -83,9 +99,12 @@ body {
 </div>
 
 <div class="counter-section">
+  <div class="waiting-label">LEADS WAITING</div>
   <div class="count" id="count">0</div>
-  <div class="avg">AVG SPEED TO FIRST CALL (BUSINESS HOURS): 
-    <strong id="avgResponse">0.0</strong> MIN
+
+  <div class="avg-container" id="avgContainer">
+    <span id="avgTitle"></span><br>
+    <strong><span id="avgResponse">0.0</span> MIN</strong>
   </div>
 </div>
 
@@ -102,6 +121,15 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+function formatDate() {
+  const now = new Date();
+  return now.toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
 async function fetchDashboard() {
   const response = await fetch('/dashboard-data');
   const data = await response.json();
@@ -110,6 +138,24 @@ async function fetchDashboard() {
 
   document.getElementById("count").innerText = leads.length;
   document.getElementById("avgResponse").innerText = data.avgResponse;
+
+  // Set title with date
+  document.getElementById("avgTitle").innerText =
+    `AVG SPEED TO FIRST CALL — ${formatDate()}`;
+
+  // Color coding
+  const avg = parseFloat(data.avgResponse);
+  const container = document.getElementById("avgContainer");
+
+  container.classList.remove("avg-green", "avg-yellow", "avg-red");
+
+  if (avg < 3) {
+    container.classList.add("avg-green");
+  } else if (avg >= 3 && avg <= 5) {
+    container.classList.add("avg-yellow");
+  } else if (avg > 5) {
+    container.classList.add("avg-red");
+  }
 
   const list = document.getElementById("leadList");
   list.innerHTML = "";
