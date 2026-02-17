@@ -1,62 +1,68 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
+const express = require("express");
+const cors = require("cors");
+const fs = require("fs");
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
-let activeLeads = [];
+const PORT = process.env.PORT || 3000;
+const DATA_FILE = "./leads.json";
 
-/**
- * ADD LEAD
- * Called when opportunity is created in LEADS stage
- */
-app.post('/new-lead', (req, res) => {
-  const { contact_id, name, phone } = req.body;
-
-  // Prevent duplicates
-  const exists = activeLeads.find(l => l.contact_id === contact_id);
-  if (!exists) {
-    activeLeads.push({
-      contact_id,
-      name,
-      phone,
-      created_at: Date.now()
-    });
+// Load leads from file
+function loadLeads() {
+  try {
+    const data = fs.readFileSync(DATA_FILE);
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
   }
+}
 
-  res.sendStatus(200);
+// Save leads to file
+function saveLeads(leads) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(leads, null, 2));
+}
+
+// GET all leads
+app.get("/leads", (req, res) => {
+  const leads = loadLeads();
+  res.json(leads);
 });
 
-/**
- * REMOVE LEAD
- * Called when moved to FIRST CALL stage
- */
-app.post('/remove-lead', (req, res) => {
-  const { contact_id } = req.body;
+// NEW LEAD
+app.post("/new-lead", (req, res) => {
+  const leads = loadLeads();
 
-  activeLeads = activeLeads.filter(
-    lead => lead.contact_id !== contact_id
+  const newLead = {
+    contact_id: req.body.contact_id,
+    name: req.body.name,
+    phone: req.body.phone,
+    source: req.body.source || "Unknown Source",
+    created_at: Date.now()
+  };
+
+  leads.push(newLead);
+  saveLeads(leads);
+
+  res.status(200).json({ success: true });
+});
+
+// REMOVE LEAD
+app.post("/remove-lead", (req, res) => {
+  let leads = loadLeads();
+
+  leads = leads.filter(
+    lead => lead.contact_id !== req.body.contact_id
   );
 
-  res.sendStatus(200);
+  saveLeads(leads);
+
+  res.status(200).json({ success: true });
 });
 
-/**
- * GET ACTIVE LEADS (for dashboard)
- */
-app.get('/leads', (req, res) => {
-  res.json(activeLeads);
-});
-
-/**
- * Serve Dashboard Frontend
- */
-app.use(express.static(path.join(__dirname, 'public')));
-
-const PORT = process.env.PORT || 10000;
+// Serve frontend
+app.use(express.static("public"));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
