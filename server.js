@@ -110,24 +110,24 @@ app.get("/dashboard-data", (req, res) => {
     data.completed = [];
   }
 
-// Get current time in Pacific timezone
-const now = new Date();
+  // Get Pacific midnight correctly
+  const now = new Date();
+  const pacificNow = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
+  );
 
-const pacificNow = new Date(
-  now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
-);
+  pacificNow.setHours(0, 0, 0, 0);
+  const todayStart = pacificNow.getTime();
 
-pacificNow.setHours(0, 0, 0, 0);
-
-const todayStart = pacificNow.getTime();
-
+  // TOTAL LEADS TODAY
   const totalLeadsToday =
     data.active.filter(l => l.created_at >= todayStart).length +
     data.completed.filter(l => l.created_at >= todayStart).length;
 
-const todayCompleted = data.completed.filter(
-  l => l.completed_at && l.created_at >= todayStart
-);
+  // COMPLETED TODAY (based on completion time, NOT created time)
+  const todayCompleted = data.completed.filter(
+    l => l.completed_at && l.completed_at >= todayStart
+  );
 
   let avgResponse = 0;
 
