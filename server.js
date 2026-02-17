@@ -9,30 +9,40 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = "./leads.json";
 
-// Load leads from file
+const BUSINESS_START = 8;  // 8 AM
+const BUSINESS_END = 17;   // 5 PM
+
 function loadLeads() {
   try {
     const data = fs.readFileSync(DATA_FILE);
     return JSON.parse(data);
-  } catch (err) {
-    return [];
+  } catch {
+    return { active: [], completed: [] };
   }
 }
 
-// Save leads to file
-function saveLeads(leads) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(leads, null, 2));
+function saveLeads(data) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// GET all leads
-app.get("/leads", (req, res) => {
-  const leads = loadLeads();
-  res.json(leads);
-});
+function calculateBusinessMinutes(start, end) {
+  let totalMinutes = 0;
+  let current = new Date(start);
+
+  while (current < new Date(end)) {
+    const hour = current.getHours();
+    if (hour >= BUSINESS_START && hour < BUSINESS_END) {
+      totalMinutes++;
+    }
+    current.setMinutes(current.getMinutes() + 1);
+  }
+
+  return totalMinutes;
+}
 
 // NEW LEAD
 app.post("/new-lead", (req, res) => {
-  const leads = loadLeads();
+  const data = loadLeads();
 
   const newLead = {
     contact_id: req.body.contact_id,
@@ -42,26 +52,61 @@ app.post("/new-lead", (req, res) => {
     created_at: Date.now()
   };
 
-  leads.push(newLead);
-  saveLeads(leads);
+  data.active.push(newLead);
+  saveLeads(data);
 
-  res.status(200).json({ success: true });
+  res.json({ success: true });
 });
 
-// REMOVE LEAD
+// REMOVE LEAD (this means first call happened)
 app.post("/remove-lead", (req, res) => {
-  let leads = loadLeads();
+  const data = loadLeads();
 
-  leads = leads.filter(
-    lead => lead.contact_id !== req.body.contact_id
+  const lead = data.active.find(
+    l => l.contact_id === req.body.contact_id
   );
 
-  saveLeads(leads);
+  if (lead) {
+    lead.completed_at = Date.now();
+    data.completed.push(lead);
+  }
 
-  res.status(200).json({ success: true });
+  data.active = data.active.filter(
+    l => l.contact_id !== req.body.contact_id
+  );
+
+  saveLeads(data);
+
+  res.json({ success: true });
 });
 
-// Serve frontend
+// DASHBOARD DATA
+app.get("/dashboard-data", (req, res) => {
+  const data = loadLeads();
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const todayCompleted = data.completed.filter(
+    l => l.completed_at && l.completed_at >= today.getTime()
+  );
+
+  let avgResponse = 0;
+
+  if (todayCompleted.length > 0) {
+    const totalBusinessMinutes = todayCompleted.reduce((sum, l) => {
+      return sum + calculateBusinessMinutes(l.created_at, l.completed_at);
+    }, 0);
+
+    avgResponse = totalBusinessMinutes / todayCompleted.length;
+  }
+
+  res.json({
+    active: data.active,
+    avgResponse: avgResponse.toFixed(1)
+  });
+});
+
 app.use(express.static("public"));
 
 app.listen(PORT, () => {
