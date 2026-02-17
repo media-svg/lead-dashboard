@@ -12,6 +12,8 @@ const DATA_FILE = "./leads.json";
 const BUSINESS_START = 8;
 const BUSINESS_END = 17;
 
+// ---------------- LOAD / SAVE ----------------
+
 function loadLeads() {
   try {
     const data = fs.readFileSync(DATA_FILE);
@@ -25,22 +27,27 @@ function saveLeads(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
+// ---------------- BUSINESS MINUTES ----------------
+
 function calculateBusinessMinutes(start, end) {
   let totalMinutes = 0;
   let current = new Date(start);
 
   while (current < new Date(end)) {
     const hour = current.getHours();
+
     if (hour >= BUSINESS_START && hour < BUSINESS_END) {
       totalMinutes++;
     }
+
     current.setMinutes(current.getMinutes() + 1);
   }
 
   return totalMinutes;
 }
 
-// NEW LEAD
+// ---------------- NEW LEAD ----------------
+
 app.post("/new-lead", (req, res) => {
   const data = loadLeads();
 
@@ -55,10 +62,13 @@ app.post("/new-lead", (req, res) => {
   data.active.push(newLead);
   saveLeads(data);
 
+  console.log("New lead received:", newLead.name);
+
   res.json({ success: true });
 });
 
-// REMOVE LEAD
+// ---------------- REMOVE LEAD ----------------
+
 app.post("/remove-lead", (req, res) => {
   const data = loadLeads();
 
@@ -76,32 +86,41 @@ app.post("/remove-lead", (req, res) => {
   );
 
   saveLeads(data);
+
   res.json({ success: true });
 });
 
-// DASHBOARD DATA
+// ---------------- DASHBOARD DATA ----------------
+
 app.get("/dashboard-data", (req, res) => {
   const data = loadLeads();
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const todayStart = today.getTime();
+  const now = new Date();
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-  // Total leads today (all created today)
+  const todayStartTime = todayStart.getTime();
+
+  // Total leads today (active + completed)
   const totalLeadsToday =
-    data.active.filter(l => l.created_at >= todayStart).length +
-    data.completed.filter(l => l.created_at >= todayStart).length;
+    data.active.filter(l => l.created_at >= todayStartTime).length +
+    data.completed.filter(l => l.created_at >= todayStartTime).length;
 
-  // Completed today (for avg calculation)
+  // Completed today (for avg calc)
   const todayCompleted = data.completed.filter(
-    l => l.completed_at && l.completed_at >= todayStart
+    l =>
+      l.completed_at &&
+      l.completed_at >= todayStartTime
   );
 
   let avgResponse = 0;
 
   if (todayCompleted.length > 0) {
     const totalBusinessMinutes = todayCompleted.reduce((sum, l) => {
-      return sum + calculateBusinessMinutes(l.created_at, l.completed_at);
+      return (
+        sum +
+        calculateBusinessMinutes(l.created_at, l.completed_at)
+      );
     }, 0);
 
     avgResponse = totalBusinessMinutes / todayCompleted.length;
@@ -109,10 +128,12 @@ app.get("/dashboard-data", (req, res) => {
 
   res.json({
     active: data.active,
-    avgResponse: avgResponse.toFixed(1),
+    avgResponse: Number(avgResponse.toFixed(1)), // <-- FIXED
     totalLeadsToday
   });
 });
+
+// ---------------- STATIC FRONTEND ----------------
 
 app.use(express.static("public"));
 
