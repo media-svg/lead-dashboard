@@ -7,102 +7,118 @@
   <style>
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: Arial, sans-serif;
       background: radial-gradient(circle at center, #1a1a1a 0%, #000000 70%);
       color: white;
       text-align: center;
     }
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 30px 50px;
+    .header {
+      position: absolute;
+      top: 30px;
+      left: 40px;
     }
 
-    .logo {
-      height: 55px;
+    .header img {
+      height: 60px;
     }
 
     .clock {
+      position: absolute;
+      top: 40px;
+      right: 40px;
       font-size: 22px;
       opacity: 0.8;
     }
 
-    .main-number {
-      margin-top: 40px;
+    .main {
+      margin-top: 160px;
     }
 
-    .leads-title {
-      font-size: 26px;
+    .title {
+      font-size: 34px;
       letter-spacing: 4px;
-      opacity: 0.6;
-    }
-
-    .lead-count {
-      font-size: 140px;
-      font-weight: 700;
-      margin: 10px 0 40px 0;
-    }
-
-    .kpi-row {
-      display: flex;
-      justify-content: center;
-      gap: 60px;
-      margin-bottom: 60px;
-    }
-
-    .kpi-card {
-      background: rgba(255,255,255,0.05);
-      padding: 30px 60px;
-      border-radius: 16px;
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,0.08);
-      min-width: 320px;
-    }
-
-    .kpi-label {
-      font-size: 14px;
-      letter-spacing: 1px;
-      opacity: 0.6;
+      opacity: 0.7;
       margin-bottom: 10px;
     }
 
-    .kpi-value {
-      font-size: 42px;
-      font-weight: 700;
+    .count {
+      font-size: 120px;
+      font-weight: bold;
+      margin-bottom: 50px;
     }
 
-    .green { color: #22c55e; }
-    .yellow { color: #facc15; }
-    .red { color: #ef4444; }
-
-    .footer {
-      position: absolute;
-      bottom: 20px;
-      right: 40px;
-      font-size: 13px;
-      opacity: 0.4;
+    .stats-container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 60px;
     }
 
-    .lead-list {
-      width: 70%;
-      margin: 0 auto 60px auto;
+    .stat-card {
+      background: linear-gradient(145deg, #1f1f1f, #141414);
+      padding: 30px 50px;
+      border-radius: 15px;
+      min-width: 340px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
 
-    .lead-item {
-      background: #16a34a;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      font-size: 20px;
+    .stat-title {
+      font-size: 15px;
+      letter-spacing: 1px;
+      opacity: 0.6;
+      margin-bottom: 12px;
+    }
+
+    .stat-value {
+      font-size: 40px;
+      font-weight: bold;
+    }
+
+    .green {
+      color: #2ecc71;
+      text-shadow: 0 0 10px rgba(46,204,113,0.4);
+    }
+
+    .yellow {
+      color: #f1c40f;
+      text-shadow: 0 0 10px rgba(241,196,15,0.4);
+    }
+
+    .red {
+      color: #e74c3c;
+      text-shadow: 0 0 10px rgba(231,76,60,0.4);
+    }
+
+    .lead {
+      width: 80%;
+      margin: 15px auto;
+      padding: 25px;
+      border-radius: 15px;
+      font-size: 24px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      color: white;
+    }
+
+    .lead-info {
+      text-align: left;
     }
 
     .lead-source {
+      font-size: 16px;
+      opacity: 0.7;
+      margin-top: 5px;
+    }
+
+    .business-hours {
+      position: absolute;
+      bottom: 20px;
+      right: 30px;
       font-size: 14px;
-      opacity: 0.8;
+      opacity: 0.5;
     }
 
   </style>
@@ -110,37 +126,34 @@
 
 <body>
 
-  <div class="top-bar">
-    <img src="/logo.png" class="logo">
-    <div class="clock" id="clock"></div>
+  <div class="header">
+    <img src="logo.png" />
   </div>
 
-  <div class="main-number">
-    <div class="leads-title">LEADS WAITING</div>
-    <div class="lead-count" id="leadCount">0</div>
-  </div>
+  <div class="clock" id="clock"></div>
 
-  <div class="kpi-row">
+  <div class="main">
+    <div class="title">LEADS WAITING</div>
+    <div class="count" id="count">0</div>
 
-    <div class="kpi-card">
-      <div class="kpi-label" id="avgLabel">
-        AVG SPEED TO FIRST CALL — 
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-title" id="avgTitle"></div>
+        <div class="stat-value" id="avgSpeed">0.0 MIN</div>
       </div>
-      <div class="kpi-value" id="avgSpeed">0.0 MIN</div>
+
+      <div class="stat-card">
+        <div class="stat-title">
+          TOTAL LEADS TODAY
+        </div>
+        <div class="stat-value" id="totalLeads">0</div>
+      </div>
     </div>
 
-    <div class="kpi-card">
-      <div class="kpi-label">
-        TOTAL LEADS TODAY
-      </div>
-      <div class="kpi-value" id="totalToday">0</div>
-    </div>
-
+    <div id="leadList"></div>
   </div>
 
-  <div class="lead-list" id="leadList"></div>
-
-  <div class="footer">
+  <div class="business-hours">
     Business Hours: 8:00 AM – 5:00 PM
   </div>
 
@@ -149,92 +162,103 @@
 function updateClock() {
   const now = new Date();
   document.getElementById("clock").innerText =
-    now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+    now.toLocaleTimeString();
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-function minutesBetween(start, end) {
-  return (end - start) / 60000;
+function businessMinutes(start, end) {
+  const open = 8;
+  const close = 17;
+
+  let total = 0;
+  let current = new Date(start);
+
+  while (current < end) {
+    if (current.getHours() >= open && current.getHours() < close) {
+      total++;
+    }
+    current = new Date(current.getTime() + 60000);
+  }
+
+  return total;
 }
 
-function withinBusinessHours(date) {
-  const hour = date.getHours();
-  return hour >= 8 && hour < 17;
-}
+async function fetchLeads() {
+  const response = await fetch("/leads");
+  const leads = await response.json();
 
-function getTodayString() {
-  const now = new Date();
-  return now.toLocaleDateString(undefined, {
+  document.getElementById("count").innerText = leads.length;
+
+  const list = document.getElementById("leadList");
+  list.innerHTML = "";
+
+  const today = new Date();
+  const todayStr = today.toDateString();
+
+  const formattedDate = today.toLocaleDateString(undefined, {
     weekday: 'long',
     month: 'long',
     day: 'numeric'
   });
-}
 
-async function loadLeads() {
-  const res = await fetch("/leads");
-  const leads = await res.json();
-
-  const now = new Date();
-  const today = now.toDateString();
-
-  document.getElementById("leadCount").innerText = leads.length;
-
-  const leadList = document.getElementById("leadList");
-  leadList.innerHTML = "";
+  document.getElementById("avgTitle").innerText =
+    `AVG SPEED TO FIRST CALL — ${formattedDate}`;
 
   let totalToday = 0;
   let totalMinutes = 0;
   let counted = 0;
 
   leads.forEach(lead => {
-    const created = new Date(lead.createdAt);
+    const created = new Date(lead.created_at);
 
-    if (created.toDateString() === today) {
+    if (created.toDateString() === todayStr) {
       totalToday++;
     }
 
-    if (lead.calledAt) {
-      const called = new Date(lead.calledAt);
+    const now = new Date();
+    const minutes = Math.floor((now - created) / 60000);
 
-      if (created.toDateString() === today && withinBusinessHours(created)) {
-        totalMinutes += minutesBetween(created, called);
-        counted++;
-      }
-    }
+    let color = "#2ecc71";
+    if (minutes > 5) color = "#f1c40f";
+    if (minutes > 15) color = "#e74c3c";
 
     const div = document.createElement("div");
-    div.className = "lead-item";
+    div.className = "lead";
+    div.style.background = color;
+
     div.innerHTML = `
-      <div>
+      <div class="lead-info">
         ${lead.name}
         <div class="lead-source">${lead.source || "Unknown Source"}</div>
       </div>
-      <div>${Math.floor(minutesBetween(created, now))} min</div>
+      <div>${minutes} min</div>
     `;
-    leadList.appendChild(div);
+
+    list.appendChild(div);
+
+    if (created.toDateString() === todayStr) {
+      totalMinutes += businessMinutes(created, now);
+      counted++;
+    }
   });
 
-  document.getElementById("totalToday").innerText = totalToday;
-
   let avg = counted > 0 ? (totalMinutes / counted) : 0;
-  document.getElementById("avgSpeed").innerText = avg.toFixed(1) + " MIN";
 
   const avgElement = document.getElementById("avgSpeed");
+  avgElement.innerText = avg.toFixed(1) + " MIN";
+
   avgElement.classList.remove("green", "yellow", "red");
 
-  if (avg < 5) avgElement.classList.add("green");
-  else if (avg < 10) avgElement.classList.add("yellow");
+  if (avg <= 5) avgElement.classList.add("green");
+  else if (avg <= 15) avgElement.classList.add("yellow");
   else avgElement.classList.add("red");
 
-  document.getElementById("avgLabel").innerText =
-    "AVG SPEED TO FIRST CALL — " + getTodayString();
-
+  document.getElementById("totalLeads").innerText = totalToday;
 }
 
-loadLeads();
-setInterval(loadLeads, 10000);
+setInterval(fetchLeads, 5000);
+fetchLeads();
 
 </script>
 
