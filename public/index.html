@@ -1,137 +1,169 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>ORA 4X Lead Command Center</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>ORA 4X Lead Command Center</title>
 
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at center, #1a1a1a 0%, #000000 70%);
+      color: white;
+      text-align: center;
+    }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background:
-    radial-gradient(1200px 600px at 50% 30%, rgba(255,255,255,0.05), transparent 70%),
-    linear-gradient(180deg, #111111 0%, #000000 100%);
-  color: white;
-  height: 100vh;
-  padding: 60px;
-}
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px 50px;
+    }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+    .logo {
+      height: 55px;
+    }
 
-.logo { height: 70px; }
+    .clock {
+      font-size: 22px;
+      opacity: 0.8;
+    }
 
-.clock { font-size: 28px; opacity: 0.7; }
+    .main-number {
+      margin-top: 40px;
+    }
 
-.counter-section {
-  text-align: center;
-  margin: 60px 0;
-}
+    .leads-title {
+      font-size: 26px;
+      letter-spacing: 4px;
+      opacity: 0.6;
+    }
 
-.waiting-label {
-  font-size: 22px;
-  letter-spacing: 3px;
-  opacity: 0.6;
-  margin-bottom: 10px;
-}
+    .lead-count {
+      font-size: 140px;
+      font-weight: 700;
+      margin: 10px 0 40px 0;
+    }
 
-.count {
-  font-size: 130px;
-  font-weight: 800;
-}
+    .kpi-row {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      margin-bottom: 60px;
+    }
 
-.kpi-block {
-  margin-top: 25px;
-  font-size: 28px;
-  font-weight: 700;
-}
+    .kpi-card {
+      background: rgba(255,255,255,0.05);
+      padding: 30px 60px;
+      border-radius: 16px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-width: 320px;
+    }
 
-.kpi-block strong {
-  font-size: 34px;
-  font-weight: 800;
-}
+    .kpi-label {
+      font-size: 14px;
+      letter-spacing: 1px;
+      opacity: 0.6;
+      margin-bottom: 10px;
+    }
 
-.avg-green { color: #22c55e; }
-.avg-yellow { color: #facc15; }
-.avg-red { color: #ef4444; }
+    .kpi-value {
+      font-size: 42px;
+      font-weight: 700;
+    }
 
-.total-leads {
-  margin-top: 15px;
-  font-size: 24px;
-  opacity: 0.85;
-}
+    .green { color: #22c55e; }
+    .yellow { color: #facc15; }
+    .red { color: #ef4444; }
 
-.board {
-  max-width: 1200px;
-  margin: 0 auto;
-}
+    .footer {
+      position: absolute;
+      bottom: 20px;
+      right: 40px;
+      font-size: 13px;
+      opacity: 0.4;
+    }
 
-.lead-card {
-  display: flex;
-  justify-content: space-between;
-  padding: 25px 35px;
-  margin-bottom: 20px;
-  border-radius: 14px;
-  font-size: 28px;
-}
+    .lead-list {
+      width: 70%;
+      margin: 0 auto 60px auto;
+    }
 
-.green { background: #15803d; }
-.yellow { background: #ca8a04; color: black; }
-.red { background: #b91c1c; }
+    .lead-item {
+      background: #16a34a;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      font-size: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
 
-.lead-info { display: flex; flex-direction: column; }
-.lead-source { font-size: 16px; opacity: 0.9; }
+    .lead-source {
+      font-size: 14px;
+      opacity: 0.8;
+    }
 
-.footer {
-  position: absolute;
-  bottom: 20px;
-  right: 60px;
-  font-size: 14px;
-  opacity: 0.4;
-}
-</style>
+  </style>
 </head>
 
 <body>
 
-<div class="header">
-  <img src="logo.png" class="logo">
-  <div class="clock" id="clock"></div>
-</div>
-
-<div class="counter-section">
-  <div class="waiting-label">LEADS WAITING</div>
-  <div class="count" id="count">0</div>
-
-  <div class="kpi-block" id="avgContainer">
-    <span id="avgTitle"></span><br>
-    <strong><span id="avgResponse">0.0</span> MIN</strong>
+  <div class="top-bar">
+    <img src="/logo.png" class="logo">
+    <div class="clock" id="clock"></div>
   </div>
 
-  <div class="total-leads">
-    TOTAL LEADS TODAY — <strong><span id="totalLeads">0</span></strong>
+  <div class="main-number">
+    <div class="leads-title">LEADS WAITING</div>
+    <div class="lead-count" id="leadCount">0</div>
   </div>
-</div>
 
-<div class="board" id="leadList"></div>
+  <div class="kpi-row">
 
-<div class="footer">Business Hours: 8:00 AM – 5:00 PM</div>
+    <div class="kpi-card">
+      <div class="kpi-label" id="avgLabel">
+        AVG SPEED TO FIRST CALL — 
+      </div>
+      <div class="kpi-value" id="avgSpeed">0.0 MIN</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-label">
+        TOTAL LEADS TODAY
+      </div>
+      <div class="kpi-value" id="totalToday">0</div>
+    </div>
+
+  </div>
+
+  <div class="lead-list" id="leadList"></div>
+
+  <div class="footer">
+    Business Hours: 8:00 AM – 5:00 PM
+  </div>
 
 <script>
 
 function updateClock() {
   const now = new Date();
-  document.getElementById("clock").innerText = now.toLocaleTimeString();
+  document.getElementById("clock").innerText =
+    now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-function formatDate() {
+function minutesBetween(start, end) {
+  return (end - start) / 60000;
+}
+
+function withinBusinessHours(date) {
+  const hour = date.getHours();
+  return hour >= 8 && hour < 17;
+}
+
+function getTodayString() {
   const now = new Date();
   return now.toLocaleDateString(undefined, {
     weekday: 'long',
@@ -140,53 +172,69 @@ function formatDate() {
   });
 }
 
-async function fetchDashboard() {
-  const response = await fetch('/dashboard-data');
-  const data = await response.json();
+async function loadLeads() {
+  const res = await fetch("/leads");
+  const leads = await res.json();
 
-  document.getElementById("count").innerText = data.active.length;
-  document.getElementById("avgResponse").innerText = data.avgResponse;
-  document.getElementById("totalLeads").innerText = data.totalLeadsToday;
+  const now = new Date();
+  const today = now.toDateString();
 
-  document.getElementById("avgTitle").innerText =
-    `AVG SPEED TO FIRST CALL — ${formatDate()}`;
+  document.getElementById("leadCount").innerText = leads.length;
 
-  const avg = parseFloat(data.avgResponse);
-  const container = document.getElementById("avgContainer");
+  const leadList = document.getElementById("leadList");
+  leadList.innerHTML = "";
 
-  container.classList.remove("avg-green", "avg-yellow", "avg-red");
+  let totalToday = 0;
+  let totalMinutes = 0;
+  let counted = 0;
 
-  if (avg < 3) container.classList.add("avg-green");
-  else if (avg <= 5) container.classList.add("avg-yellow");
-  else container.classList.add("avg-red");
+  leads.forEach(lead => {
+    const created = new Date(lead.createdAt);
 
-  const list = document.getElementById("leadList");
-  list.innerHTML = "";
+    if (created.toDateString() === today) {
+      totalToday++;
+    }
 
-  data.active.forEach(lead => {
-    const minutes = Math.floor((Date.now() - lead.created_at) / 60000);
+    if (lead.calledAt) {
+      const called = new Date(lead.calledAt);
 
-    let status = "green";
-    if (minutes >= 3) status = "yellow";
-    if (minutes >= 5) status = "red";
+      if (created.toDateString() === today && withinBusinessHours(created)) {
+        totalMinutes += minutesBetween(created, called);
+        counted++;
+      }
+    }
 
     const div = document.createElement("div");
-    div.className = "lead-card " + status;
-
+    div.className = "lead-item";
     div.innerHTML = `
-      <div class="lead-info">
-        <div>${lead.name}</div>
+      <div>
+        ${lead.name}
         <div class="lead-source">${lead.source || "Unknown Source"}</div>
       </div>
-      <div>${minutes} min</div>
+      <div>${Math.floor(minutesBetween(created, now))} min</div>
     `;
-
-    list.appendChild(div);
+    leadList.appendChild(div);
   });
+
+  document.getElementById("totalToday").innerText = totalToday;
+
+  let avg = counted > 0 ? (totalMinutes / counted) : 0;
+  document.getElementById("avgSpeed").innerText = avg.toFixed(1) + " MIN";
+
+  const avgElement = document.getElementById("avgSpeed");
+  avgElement.classList.remove("green", "yellow", "red");
+
+  if (avg < 5) avgElement.classList.add("green");
+  else if (avg < 10) avgElement.classList.add("yellow");
+  else avgElement.classList.add("red");
+
+  document.getElementById("avgLabel").innerText =
+    "AVG SPEED TO FIRST CALL — " + getTodayString();
+
 }
 
-setInterval(fetchDashboard, 5000);
-fetchDashboard();
+loadLeads();
+setInterval(loadLeads, 10000);
 
 </script>
 
