@@ -16,13 +16,13 @@ const BUSINESS_END = 17;    // 5 PM Pacific
 
 function loadLeads() {
   try {
-    const data = JSON.parse(fs.readFileSync(DATA_FILE));
+    const raw = fs.readFileSync(DATA_FILE);
+    const data = JSON.parse(raw);
 
     return {
       active: data.active || [],
       completed: data.completed || []
     };
-
   } catch {
     return { active: [], completed: [] };
   }
@@ -43,8 +43,7 @@ function toPacific(date) {
 }
 
 function getPacificMidnight() {
-  const now = new Date();
-  const pacificNow = toPacific(now);
+  const pacificNow = toPacific(new Date());
   pacificNow.setHours(0, 0, 0, 0);
   return pacificNow.getTime();
 }
@@ -59,8 +58,8 @@ function calculateBusinessMinutes(start, end) {
 
   while (current < endDate) {
 
-    const pacific = toPacific(current);
-    const hour = pacific.getHours();
+    const pacificTime = toPacific(current);
+    const hour = pacificTime.getHours();
 
     if (hour >= BUSINESS_START && hour < BUSINESS_END) {
       totalMinutes++;
@@ -98,20 +97,20 @@ app.post("/new-lead", (req, res) => {
 app.post("/remove-lead", (req, res) => {
   const data = loadLeads();
 
-  const lead = data.active.find(
+  const leadIndex = data.active.findIndex(
     l => l.contact_id === req.body.contact_id
   );
 
-  if (lead) {
+  if (leadIndex !== -1) {
+    const lead = data.active[leadIndex];
+
     lead.completed_at = Date.now();
+
     data.completed.push(lead);
+    data.active.splice(leadIndex, 1);
+
+    saveLeads(data);
   }
-
-  data.active = data.active.filter(
-    l => l.contact_id !== req.body.contact_id
-  );
-
-  saveLeads(data);
 
   res.json({ success: true });
 });
@@ -120,15 +119,14 @@ app.post("/remove-lead", (req, res) => {
 
 app.get("/dashboard-data", (req, res) => {
   const data = loadLeads();
-
   const todayStart = getPacificMidnight();
 
-  // TOTAL LEADS TODAY
+  // TOTAL LEADS TODAY (based on activity occurring today)
   const totalLeadsToday =
     data.active.filter(l => l.created_at >= todayStart).length +
-    data.completed.filter(l => l.created_at >= todayStart).length;
+    data.completed.filter(l => l.completed_at >= todayStart).length;
 
-  // COMPLETED TODAY (based on completion time)
+  // COMPLETED TODAY
   const todayCompleted = data.completed.filter(
     l => l.completed_at && l.completed_at >= todayStart
   );
