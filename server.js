@@ -40,20 +40,19 @@ function saveLeads(data) {
 // ---------------- BUSINESS MINUTES ----------------
 
 function calculateBusinessMinutes(start, end) {
-  let totalMinutes = 0;
-  let current = new Date(start);
+  const startDate = new Date(start);
+  const endDate = new Date(end);
 
-  while (current < new Date(end)) {
-    const hour = current.getHours();
-
-    if (hour >= BUSINESS_START && hour < BUSINESS_END) {
-      totalMinutes++;
-    }
-
-    current.setMinutes(current.getMinutes() + 1);
+  // If entirely outside business hours, return 0
+  if (startDate.getHours() >= BUSINESS_END ||
+      startDate.getHours() < BUSINESS_START) {
+    return 0;
   }
 
-  return totalMinutes;
+  const diffMs = endDate - startDate;
+  const diffMinutes = diffMs / 60000;
+
+  return Math.max(0, Math.round(diffMinutes));
 }
 
 // ---------------- NEW LEAD ----------------
