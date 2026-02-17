@@ -148,3 +148,11 @@ app.use(express.static("public"));
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// ---------------- DEBUG ROUTE ----------------
+
+app.get("/leads.json", (req, res) => {
+  const data = loadLeads();
+  res.json(data);
+});
+
