@@ -105,40 +105,35 @@ app.post("/remove-lead", (req, res) => {
 app.get("/dashboard-data", (req, res) => {
   const data = loadLeads();
 
-  const now = new Date();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  if (!data.completed) {
+    data.completed = [];
+  }
 
-  const todayStartTime = todayStart.getTime();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const todayStart = today.getTime();
 
-  // Total leads today (active + completed)
   const totalLeadsToday =
-    data.active.filter(l => l.created_at >= todayStartTime).length +
-    data.completed.filter(l => l.created_at >= todayStartTime).length;
+    data.active.filter(l => l.created_at >= todayStart).length +
+    data.completed.filter(l => l.created_at >= todayStart).length;
 
-  // Completed today (for avg calc)
   const todayCompleted = data.completed.filter(
-    l =>
-      l.completed_at &&
-      l.completed_at >= todayStartTime
+    l => l.completed_at && l.completed_at >= todayStart
   );
 
   let avgResponse = 0;
 
   if (todayCompleted.length > 0) {
-    const totalBusinessMinutes = todayCompleted.reduce((sum, l) => {
-      return (
-        sum +
-        calculateBusinessMinutes(l.created_at, l.completed_at)
-      );
+    const totalMinutes = todayCompleted.reduce((sum, l) => {
+      return sum + Math.round((l.completed_at - l.created_at) / 60000);
     }, 0);
 
-    avgResponse = totalBusinessMinutes / todayCompleted.length;
+    avgResponse = Math.round(totalMinutes / todayCompleted.length);
   }
 
   res.json({
     active: data.active,
-    avgResponse: Number(avgResponse.toFixed(1)), // <-- FIXED
+    avgResponse,
     totalLeadsToday
   });
 });
