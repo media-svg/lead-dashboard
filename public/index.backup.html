@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>ORA 4X Lead Dashboard</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at center, #111 0%, #000 70%);
+      color: white;
+      text-align: center;
+    }
+
+    /* =======================
+       TOP NAV
+    ======================== */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+
+    .logo img {
+      height: 55px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      font-size: 16px;
+      opacity: 0.8;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      opacity: 1;
+    }
+
+    .clock {
+      font-size: 18px;
+      opacity: 0.7;
+    }
+
+    /* =======================
+       MAIN SECTION
+    ======================== */
+    .content {
+      margin-top: 120px;
+    }
+
+    .main-count h1 {
+      font-size: 28px;
+      letter-spacing: 3px;
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    .main-count .number {
+      font-size: 130px;
+      margin: 10px 0 40px 0;
+    }
+
+    /* =======================
+       METRICS
+    ======================== */
+    .metrics {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+
+    .metric-card {
+      background: rgba(255,255,255,0.06);
+      padding: 30px 60px;
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      min-width: 300px;
+    }
+
+    .metric-title {
+      font-size: 14px;
+      letter-spacing: 2px;
+      opacity: 0.6;
+      margin-bottom: 15px;
+    }
+
+    .metric-value {
+      font-size: 42px;
+      font-weight: bold;
+    }
+
+    /* =======================
+       LEADS
+    ======================== */
+    .lead-container {
+      width: 85%;
+      margin: 0 auto 80px auto;
+    }
+
+    .lead-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 35px 50px;
+      border-radius: 16px;
+      margin-bottom: 30px;
+      font-size: 24px;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+      transition: background 0.3s ease;
+    }
+
+    .lead-green {
+      background: #1db954;
+    }
+
+    .lead-yellow {
+      background: #f5a623;
+      color: black;
+    }
+
+    .lead-red {
+      background: #ff3b30;
+    }
+
+    .lead-left {
+      text-align: left;
+    }
+
+    .lead-name {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .lead-source {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-top: 6px;
+    }
+
+    .lead-time {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 20px;
+      right: 40px;
+      font-size: 14px;
+      opacity: 0.5;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="top-bar">
+    <div class="logo">
+      <img src="/logo.png" alt="ORA 4X Logo">
+    </div>
+
+    <div class="nav-links">
+      <a href="#">Dashboard</a>
+      <a href="#">Analytics</a>
+    </div>
+
+    <div class="clock" id="clock"></div>
+  </div>
+
+  <div class="content">
+
+    <div class="main-count">
+      <h1>LEADS WAITING</h1>
+      <div class="number" id="activeCount">0</div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="metric-title" id="avgTitle">
+          AVG SPEED TO FIRST CALL
+        </div>
+        <div class="metric-value" id="avgResponse">0 MIN</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-title">
+          TOTAL LEADS TODAY
+        </div>
+        <div class="metric-value" id="totalLeads">0</div>
+      </div>
+    </div>
+
+    <div class="lead-container" id="leadList"></div>
+
+  </div>
+
+  <div class="footer">
+    Business Hours: 8:00 AM – 5:00 PM
+  </div>
+
+<script>
+
+  /* ======================
+     CLOCK
+  ====================== */
+  function updateClock() {
+    const now = new Date();
+    document.getElementById("clock").innerText =
+      now.toLocaleTimeString();
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+
+  /* ======================
+     DASHBOARD LOADER
+  ====================== */
+  async function loadDashboard() {
+    const res = await fetch("/dashboard-data");
+    const data = await res.json();
+
+    document.getElementById("activeCount").innerText = data.active.length;
+    document.getElementById("totalLeads").innerText = data.totalLeadsToday;
+
+    const avg = parseFloat(data.avgResponse);
+    const avgElement = document.getElementById("avgResponse");
+
+    avgElement.innerText = avg + " MIN";
+
+    // Avg color coding
+    if (avg <= 5) {
+      avgElement.style.color = "#1db954";
+    } else if (avg <= 15) {
+      avgElement.style.color = "#f5a623";
+    } else {
+      avgElement.style.color = "#ff3b30";
+    }
+
+    // Add today's date
+    const today = new Date();
+    document.getElementById("avgTitle").innerText =
+      "AVG SPEED TO FIRST CALL — " +
+      today.toLocaleDateString(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      });
+
+    const container = document.getElementById("leadList");
+    container.innerHTML = "";
+
+    data.active.forEach(lead => {
+
+      const minutesWaiting = Math.floor(
+        (Date.now() - lead.created_at) / 60000
+      );
+
+      let colorClass = "lead-green";
+
+      if (minutesWaiting >= 10) {
+        colorClass = "lead-red";
+      } else if (minutesWaiting >= 5) {
+        colorClass = "lead-yellow";
+      }
+
+      const card = document.createElement("div");
+      card.className = `lead-card ${colorClass}`;
+
+      card.innerHTML = `
+        <div class="lead-left">
+          <div class="lead-name">${lead.name}</div>
+          <div class="lead-source">${lead.source}</div>
+        </div>
+        <div class="lead-time">
+          ${minutesWaiting} MIN
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  loadDashboard();
+  setInterval(loadDashboard, 10000);
+
+</script>
+
+</body>
+</html>
