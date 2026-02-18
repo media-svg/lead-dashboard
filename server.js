@@ -58,10 +58,14 @@ function calculateBusinessMinutes(start, end) {
 
   while (current < endDate) {
 
-    const pacificTime = toPacific(current);
-    const hour = pacificTime.getHours();
+    const pacific = toPacific(current);
+    const hour = pacific.getHours();
+    const day = pacific.getDay(); // 0 = Sunday, 6 = Saturday
 
-    if (hour >= BUSINESS_START && hour < BUSINESS_END) {
+    const isWeekend = (day === 0 || day === 6);
+    const isBusinessHour = hour >= BUSINESS_START && hour < BUSINESS_END;
+
+    if (!isWeekend && isBusinessHour) {
       totalMinutes++;
     }
 
@@ -70,6 +74,8 @@ function calculateBusinessMinutes(start, end) {
 
   return totalMinutes;
 }
+
+
 
 // ---------------- NEW LEAD ----------------
 
