@@ -13,9 +13,6 @@
       text-align: center;
     }
 
-    /* =======================
-       TOP NAV
-    ======================== */
     .top-bar {
       position: fixed;
       top: 0;
@@ -55,9 +52,6 @@
       opacity: 0.7;
     }
 
-    /* =======================
-       MAIN SECTION
-    ======================== */
     .content {
       margin-top: 120px;
     }
@@ -74,9 +68,6 @@
       margin: 10px 0 40px 0;
     }
 
-    /* =======================
-       METRICS
-    ======================== */
     .metrics {
       display: flex;
       justify-content: center;
@@ -105,9 +96,6 @@
       font-weight: bold;
     }
 
-    /* =======================
-       LEADS
-    ======================== */
     .lead-container {
       width: 85%;
       margin: 0 auto 80px auto;
@@ -125,22 +113,11 @@
       transition: background 0.3s ease;
     }
 
-    .lead-green {
-      background: #1db954;
-    }
+    .lead-green { background: #1db954; }
+    .lead-yellow { background: #f5a623; color: black; }
+    .lead-red { background: #ff3b30; }
 
-    .lead-yellow {
-      background: #f5a623;
-      color: black;
-    }
-
-    .lead-red {
-      background: #ff3b30;
-    }
-
-    .lead-left {
-      text-align: left;
-    }
+    .lead-left { text-align: left; }
 
     .lead-name {
       font-size: 28px;
@@ -217,9 +194,6 @@
 
 <script>
 
-  /* ======================
-     CLOCK
-  ====================== */
   function updateClock() {
     const now = new Date();
     document.getElementById("clock").innerText =
@@ -229,9 +203,6 @@
   updateClock();
 
 
-  /* ======================
-     DASHBOARD LOADER
-  ====================== */
   async function loadDashboard() {
     const res = await fetch("/dashboard-data");
     const data = await res.json();
@@ -244,7 +215,6 @@
 
     avgElement.innerText = avg + " MIN";
 
-    // Avg color coding
     if (avg <= 5) {
       avgElement.style.color = "#1db954";
     } else if (avg <= 15) {
@@ -253,7 +223,6 @@
       avgElement.style.color = "#ff3b30";
     }
 
-    // Add today's date
     const today = new Date();
     document.getElementById("avgTitle").innerText =
       "AVG SPEED TO FIRST CALL — " +
@@ -268,9 +237,8 @@
 
     data.active.forEach(lead => {
 
-      const minutesWaiting = Math.floor(
-        (Date.now() - lead.created_at) / 60000
-      );
+      const minutesWaiting = lead.waitingMinutes;
+      const waitingLabel = lead.waitingLabel;
 
       let colorClass = "lead-green";
 
@@ -289,7 +257,7 @@
           <div class="lead-source">${lead.source}</div>
         </div>
         <div class="lead-time">
-          ${minutesWaiting} MIN
+          ${waitingLabel}
         </div>
       `;
 
