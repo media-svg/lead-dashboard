@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 const DATA_FILE = "./leads.json";
 
 const BUSINESS_START = 8;   // 8 AM Pacific
-const BUSINESS_END = 17;    // 5 PM Pacific
+const BUSINESS_END = 17;    // 5 PM Pacific (17 = 5PM)
 
 // ---------------- LOAD / SAVE ----------------
 
@@ -48,7 +48,7 @@ function getPacificMidnight() {
   return pacificNow.getTime();
 }
 
-// ---------------- BUSINESS MINUTES ----------------
+// ---------------- BUSINESS MINUTES ENGINE ----------------
 
 function calculateBusinessMinutes(start, end) {
   let totalMinutes = 0;
@@ -75,7 +75,30 @@ function calculateBusinessMinutes(start, end) {
   return totalMinutes;
 }
 
+// ---------------- FORMAT BUSINESS DURATION ----------------
 
+function formatBusinessDuration(totalMinutes) {
+
+  const BUSINESS_MINUTES_PER_DAY = (BUSINESS_END - BUSINESS_START) * 60;
+
+  const days = Math.floor(totalMinutes / BUSINESS_MINUTES_PER_DAY);
+  const remainingAfterDays = totalMinutes % BUSINESS_MINUTES_PER_DAY;
+
+  const hours = Math.floor(remainingAfterDays / 60);
+  const minutes = remainingAfterDays % 60;
+
+  let parts = [];
+
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0 || parts.length === 0) parts.push(`${minutes}m`);
+
+  return parts.join(" ");
+}
+
+function getBusinessMinutesUntilNow(start) {
+  return calculateBusinessMinutes(start, Date.now());
+}
 
 // ---------------- NEW LEAD ----------------
 
@@ -124,15 +147,16 @@ app.post("/remove-lead", (req, res) => {
 // ---------------- DASHBOARD DATA ----------------
 
 app.get("/dashboard-data", (req, res) => {
+
   const data = loadLeads();
   const todayStart = getPacificMidnight();
 
-  // TOTAL LEADS TODAY (based on activity occurring today)
+  // ---------- TOTAL LEADS TODAY ----------
   const totalLeadsToday =
     data.active.filter(l => l.created_at >= todayStart).length +
     data.completed.filter(l => l.completed_at >= todayStart).length;
 
-  // COMPLETED TODAY
+  // ---------- COMPLETED TODAY ----------
   const todayCompleted = data.completed.filter(
     l => l.completed_at && l.completed_at >= todayStart
   );
@@ -150,8 +174,20 @@ app.get("/dashboard-data", (req, res) => {
     avgResponse = Math.round(totalMinutes / todayCompleted.length);
   }
 
+  // ---------- ACTIVE LEADS WITH BUSINESS WAITING ----------
+  const activeWithWaiting = data.active.map(lead => {
+
+    const minutes = getBusinessMinutesUntilNow(lead.created_at);
+
+    return {
+      ...lead,
+      waitingMinutes: minutes,
+      waitingLabel: formatBusinessDuration(minutes)
+    };
+  });
+
   res.json({
-    active: data.active,
+    active: activeWithWaiting,
     avgResponse,
     totalLeadsToday
   });
